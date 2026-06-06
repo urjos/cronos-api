@@ -36,6 +36,8 @@ public class TimeEntryRepository {
                     t.setTaskId(rs.getObject("task_id", Integer.class));
                     t.setDescription(rs.getString("description"));
                     t.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+                    t.setTagIds(getTagIdsForEntry(conn, t.getId()));
+                    
                     return t;
                 }
             }
@@ -135,8 +137,8 @@ public class TimeEntryRepository {
      */
     public List<TimeEntry> findEntries(Integer workspaceId, Integer userId, boolean isManager) {
         String sql = isManager 
-                ? "SELECT * FROM `time_entry` WHERE workspace_id = ? ORDER BY start_time DESC"
-                : "SELECT * FROM `time_entry` WHERE workspace_id = ? AND user_id = ? ORDER BY start_time DESC";
+                ? "SELECT * FROM `time_entry` WHERE workspace_id = ? ORDER BY created_at DESC"
+                : "SELECT * FROM `time_entry` WHERE workspace_id = ? AND user_id = ? ORDER BY created_at DESC";
         
         List<TimeEntry> entries = new ArrayList<>();
 
@@ -163,6 +165,8 @@ public class TimeEntryRepository {
                     if (endTimeStamp != null) {
                         t.setEndTime(endTimeStamp.toLocalDateTime());
                     }
+                    
+                    t.setTagIds(getTagIdsForEntry(conn, t.getId()));
                     
                     entries.add(t);
                 }
@@ -248,6 +252,9 @@ public class TimeEntryRepository {
                     t.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
                     Timestamp end = rs.getTimestamp("end_time");
                     if (end != null) t.setEndTime(end.toLocalDateTime());
+                    
+                    t.setTagIds(getTagIdsForEntry(conn, t.getId()));
+                    
                     return t;
                 }
             }
@@ -311,4 +318,18 @@ public class TimeEntryRepository {
             throw new RuntimeException("Error al eliminar entrada.", e);
         }
     }
+    
+    private List<Integer> getTagIdsForEntry(Connection conn, Integer entryId) throws SQLException {
+    List<Integer> ids = new ArrayList<>();
+    String sql = "SELECT tag_id FROM `time_entry_tag` WHERE time_entry_id = ?";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setInt(1, entryId);
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                ids.add(rs.getInt("tag_id"));
+            }
+        }
+    }
+    return ids;
+}
 }

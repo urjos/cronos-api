@@ -2,6 +2,7 @@ package com.cronos.api.modules.workspace.controller;
 
 import com.cronos.api.modules.workspace.model.MemberInviteRequest;
 import com.cronos.api.modules.workspace.model.WorkspaceCreateRequest;
+import com.cronos.api.modules.workspace.model.WorkspaceMemberResponse;
 import com.cronos.api.modules.workspace.model.WorkspaceResponse;
 import com.cronos.api.modules.workspace.service.WorkspaceService;
 import io.javalin.http.Context;
@@ -93,6 +94,21 @@ public class WorkspaceController {
         } catch (Exception e) {
             log.error("Error inesperado al invitar miembro", e);
             ctx.status(500).json(java.util.Map.of("error", "Internal Server Error", "message", "Error al procesar la invitación."));
+        }
+    }
+    
+    public void getMembers(Context ctx) {
+        Integer workspaceId = Integer.parseInt(ctx.pathParam("workspaceId"));
+        Integer requesterId = ctx.attribute("userId"); // Extraído por tu AuthMiddleware
+
+        try {
+            List<WorkspaceMemberResponse> members = workspaceService.getWorkspaceMembers(workspaceId, requesterId);
+            ctx.json(members);
+        } catch (SecurityException e) {
+            ctx.status(403).result(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error al obtener miembros para el workspace {}", workspaceId, e);
+            ctx.status(500).result("Error interno del servidor.");
         }
     }
 }

@@ -9,6 +9,7 @@ import com.cronos.api.modules.workspace.model.WorkspaceRole;
 import com.cronos.api.modules.workspace.repository.WorkspaceRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TimeEntryService {
@@ -42,6 +43,8 @@ public class TimeEntryService {
         entry.setTaskId(request.getTaskId());
         entry.setDescription(request.getDescription() != null ? request.getDescription().trim() : "Sin descripción");
         entry.setStartTime(LocalDateTime.now());
+        
+        entry.setTagIds(request.getTagIds());
 
         // 4. Persistir con transacción (incluye tags)
         TimeEntry savedEntry = timeEntryRepository.startTimer(entry, request.getTagIds());
@@ -145,6 +148,9 @@ public class TimeEntryService {
         entry.setEndTime(request.getEndTime());
 
         TimeEntry updatedEntry = timeEntryRepository.updateEntry(entry, request.getTagIds());
+        
+        updatedEntry.setTagIds(request.getTagIds() != null ? request.getTagIds() : new ArrayList<>());
+        
         return new TimeEntryResponse(updatedEntry);
     }
 

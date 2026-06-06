@@ -5,6 +5,7 @@ import com.cronos.api.modules.security.repository.UserRepository;
 import com.cronos.api.modules.workspace.model.MemberInviteRequest;
 import com.cronos.api.modules.workspace.model.Workspace;
 import com.cronos.api.modules.workspace.model.WorkspaceCreateRequest;
+import com.cronos.api.modules.workspace.model.WorkspaceMemberResponse;
 import com.cronos.api.modules.workspace.model.WorkspaceResponse;
 import com.cronos.api.modules.workspace.model.WorkspaceRole;
 import com.cronos.api.modules.workspace.model.WorkspaceStatus;
@@ -80,5 +81,16 @@ public class WorkspaceService {
         // 4. Inserción (Si no mandan rol, por defecto es MEMBER)
         WorkspaceRole roleToAssign = request.getRole() != null ? request.getRole() : WorkspaceRole.MEMBER;
         workspaceRepository.addMember(workspaceId, targetUser.getId(), roleToAssign, inviterId);
+    }
+    
+    /**
+     * Obtiene la lista de miembros de un espacio de trabajo validando que el solicitante pertenezca al mismo.
+     */
+    public List<WorkspaceMemberResponse> getWorkspaceMembers(Integer workspaceId, Integer requesterId) {
+        WorkspaceRole role = workspaceRepository.getMemberRole(workspaceId, requesterId);
+        if (role == null) {
+            throw new SecurityException("No perteneces a este espacio de trabajo.");
+        }
+        return workspaceRepository.getWorkspaceMembers(workspaceId);
     }
 }

@@ -2,6 +2,7 @@ package com.cronos.api.modules.workspace.repository;
 
 import com.cronos.api.core.DatabaseManager;
 import com.cronos.api.modules.workspace.model.Workspace;
+import com.cronos.api.modules.workspace.model.WorkspaceMemberResponse;
 import com.cronos.api.modules.workspace.model.WorkspaceRole;
 import com.cronos.api.modules.workspace.model.WorkspaceStatus;
 import org.slf4j.Logger;
@@ -188,5 +189,39 @@ public class WorkspaceRepository {
             log.error("Error al añadir al miembro al workspace", e);
             throw new RuntimeException("No se pudo añadir el miembro a la base de datos.", e);
         }
+    }
+    
+    /**
+     * Obtiene la lista de todos los miembros de un espacio de trabajo con sus roles.
+     */
+    public List<WorkspaceMemberResponse> getWorkspaceMembers(Integer workspaceId) {
+        // Asumiendo que tu tabla de usuarios se llama 'user' o 'users'
+        String sql = "SELECT u.id, u.username, wm.role " +
+                     "FROM `workspace_member` wm " +
+                     "INNER JOIN `user` u ON wm.user_id = u.id " +
+                     "WHERE wm.workspace_id = ?";
+
+        List<WorkspaceMemberResponse> members = new ArrayList<>();
+
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, workspaceId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    members.add(new WorkspaceMemberResponse(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        WorkspaceRole.valueOf(rs.getString("role"))
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            log.error("Error al obtener los miembros del workspace {}", workspaceId, e);
+            throw new RuntimeException("Error de base de datos al listar miembros.", e);
+        }
+
+        return members;
     }
 }

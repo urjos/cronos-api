@@ -65,12 +65,13 @@ public class Bootstrap {
         String jwtSecret = dotenv.get("JWT_SECRET", "default_secret_local_jeje_la_beba_2019_daaa");
         
         UserRepository userRepository = new UserRepository(dbManager);
-        UserService userService = new UserService(userRepository, jwtSecret);
-        UserController userController = new UserController(userService);
         
         WorkspaceRepository workspaceRepository = new WorkspaceRepository(dbManager);
         WorkspaceService workspaceService = new WorkspaceService(workspaceRepository, userRepository);
         WorkspaceController workspaceController = new WorkspaceController(workspaceService);
+        
+        UserService userService = new UserService(userRepository, workspaceService, jwtSecret);
+        UserController userController = new UserController(userService);
         
         ProjectRepository projectRepository = new ProjectRepository(dbManager);
         ProjectService projectService = new ProjectService(projectRepository, workspaceRepository);
@@ -191,6 +192,7 @@ public class Bootstrap {
         
         app.post("/api/workspaces", workspaceController::create);
         app.post("/api/workspaces/{workspaceId}/members", workspaceController::inviteMember);
+        app.get("/api/workspaces/{workspaceId}/members", workspaceController::getMembers);
         app.get("/api/workspaces", workspaceController::getAll);
         
         app.post("/api/workspaces/{workspaceId}/projects", projectController::create);

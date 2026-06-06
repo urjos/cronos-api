@@ -1,6 +1,7 @@
 package com.cronos.api.modules.time.model;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class TimeEntryResponse {
     private Integer id;
@@ -11,6 +12,7 @@ public class TimeEntryResponse {
     private String description;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private List<Integer> tagIds;
 
     public TimeEntryResponse(TimeEntry entry) {
         this.id = entry.getId();
@@ -21,6 +23,7 @@ public class TimeEntryResponse {
         this.description = entry.getDescription();
         this.startTime = entry.getStartTime();
         this.endTime = entry.getEndTime();
+        this.tagIds = entry.getTagIds();
     }
 
     public Integer getId() { return id; }
@@ -34,4 +37,6 @@ public class TimeEntryResponse {
     
     public LocalDateTime getStartTime() { return startTime; }
     public LocalDateTime getEndTime() { return endTime; }
+    
+    public List<Integer> getTagIds() { return tagIds; }
 }

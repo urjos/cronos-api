@@ -1,6 +1,8 @@
 package com.cronos.api.modules.time.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TimeEntry {
     private Integer id;
@@ -13,6 +15,7 @@ public class TimeEntry {
     private LocalDateTime endTime;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<Integer> tagIds = new ArrayList<>();
 
     public TimeEntry() {}
 
@@ -45,4 +48,7 @@ public class TimeEntry {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public List<Integer> getTagIds() { return tagIds; }
+    public void setTagIds(List<Integer> tagIds) { this.tagIds = tagIds; }
 }

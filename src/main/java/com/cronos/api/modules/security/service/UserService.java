@@ -10,16 +10,20 @@ import com.cronos.api.modules.security.model.UserLoginRequest;
 import com.cronos.api.modules.security.model.UserResponse;
 import com.cronos.api.modules.security.model.UserStatus;
 import com.cronos.api.modules.security.repository.UserRepository;
+import com.cronos.api.modules.workspace.model.WorkspaceCreateRequest;
+import com.cronos.api.modules.workspace.service.WorkspaceService;
 import java.util.Date;
 
 public class UserService {
 
     private final UserRepository userRepository;
+    private final WorkspaceService workspaceService;
     private final String jwtSecret;
 
     // Inyección de dependencia: El servicio necesita el repositorio para consultar/guardar
-    public UserService(UserRepository userRepository, String jwtSecret) {
+    public UserService(UserRepository userRepository, WorkspaceService workspaceService, String jwtSecret) {
         this.userRepository = userRepository;
+        this.workspaceService = workspaceService;
         this.jwtSecret = jwtSecret;
     }
 
@@ -57,6 +61,12 @@ public class UserService {
 
         // 4. Persistencia en MySQL
         User savedUser = userRepository.save(newUser);
+        
+        WorkspaceCreateRequest defaultWorkspace = new WorkspaceCreateRequest();
+        defaultWorkspace.setName("Espacio de " + savedUser.getUsername());
+        defaultWorkspace.setDescription("Espacio de trabajo personal autogenerado.");
+        
+        workspaceService.createWorkspace(defaultWorkspace, savedUser.getId());
 
         // 5. Retornar la respuesta segura (El DTO omite el pwdHash automáticamente)
         return new UserResponse(savedUser);
