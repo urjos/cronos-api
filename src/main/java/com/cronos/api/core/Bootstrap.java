@@ -31,7 +31,10 @@ import io.javalin.json.JavalinJackson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Orquestador principal de la aplicación.
@@ -132,11 +135,28 @@ public class Bootstrap {
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         
+        String corsOriginsRaw = dotenv.get("CORS_ALLOWED_ORIGINS", "*");
+        List<String> corsAllowedOrigins = Arrays.stream(corsOriginsRaw.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .collect(Collectors.toList());
+        if (corsAllowedOrigins.isEmpty()) {
+            corsAllowedOrigins = List.of("*");
+        }
+        final List<String> finalCorsAllowedOrigins = corsAllowedOrigins;
+
         app = Javalin.create(config -> {
             config.jsonMapper(new JavalinJackson(mapper));
             config.http.defaultContentType = "application/json";
-            config.plugins.enableCors(cors -> cors.add(it -> it.anyHost())); 
+            config.plugins.enableCors(cors -> cors.add(it -> {
+                if (finalCorsAllowedOrigins.size() == 1 && "*".equals(finalCorsAllowedOrigins.get(0))) {
+                    it.anyHost();
+                } else {
+                    finalCorsAllowedOrigins.forEach(it::allowHost);
+                }
+            }));
         }).start(port);
+        log.info("CORS habilitado para orígenes: {}", finalCorsAllowedOrigins);
 
         // Registrar la instancia de Javalin por si algún módulo la necesita
         locator.register(Javalin.class, app);
